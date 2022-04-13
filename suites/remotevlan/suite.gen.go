@@ -2,16 +2,18 @@
 package remotevlan
 
 import (
+	"github.com/Nordix/integration-tests/suites/remotevlan/rvlanovs"
+	"github.com/Nordix/integration-tests/suites/remotevlan/rvlanvpp"
+	"github.com/Nordix/integration-tests/suites/spire"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/networkservicemesh/integration-tests/extensions/base"
-	"github.com/networkservicemesh/integration-tests/suites/remotevlan/rvlanvpp"
-	"github.com/networkservicemesh/integration-tests/suites/spire"
 )
 
 type Suite struct {
 	base.Suite
 	spireSuite    spire.Suite
+	rvlanovsSuite rvlanovs.Suite
 	rvlanvppSuite rvlanvpp.Suite
 }
 
@@ -25,7 +27,7 @@ func (s *Suite) SetupSuite() {
 			v.SetupSuite()
 		}
 	}
-	r := s.Runner("../deployments-k8s/examples/remotevlan")
+	r := s.Runner("../nsm-deployments-k8s/examples/remotevlan")
 	s.T().Cleanup(func() {
 		r.Run(`WH=$(kubectl get pods -l app=admission-webhook-k8s -n nsm-system --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')` + "\n" + `kubectl delete mutatingwebhookconfiguration ${WH}` + "\n" + `kubectl delete ns nsm-system`)
 		r.Run(`docker network disconnect bridge-2 kind-worker` + "\n" + `docker network disconnect bridge-2 kind-worker2` + "\n" + `docker network rm bridge-2` + "\n" + `docker exec kind-worker ip link del ext_net1` + "\n" + `docker exec kind-worker2 ip link del ext_net1` + "\n" + `true`)
@@ -61,6 +63,13 @@ func (s *Suite) RunIncludedSuites() {
 		// Run test
 		subSuite.(runner).Run(testName, subtest)
 	}
+	s.Run("Rvlanovs", func() {
+		s.rvlanovsSuite.SetT(s.T())
+		s.rvlanovsSuite.SetupSuite()
+		runTest(&s.rvlanovsSuite, "Rvlanovs", "TestKernel2RVlanBreakout", s.rvlanovsSuite.TestKernel2RVlanBreakout)
+		runTest(&s.rvlanovsSuite, "Rvlanovs", "TestKernel2RVlanInternal", s.rvlanovsSuite.TestKernel2RVlanInternal)
+		runTest(&s.rvlanovsSuite, "Rvlanovs", "TestKernel2RVlanMultiNS", s.rvlanovsSuite.TestKernel2RVlanMultiNS)
+	})
 	s.Run("Rvlanvpp", func() {
 		s.rvlanvppSuite.SetT(s.T())
 		s.rvlanvppSuite.SetupSuite()

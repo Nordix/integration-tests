@@ -1,4 +1,4 @@
-module github.com/networkservicemesh/integration-tests
+module github.com/Nordix/integration-tests
 
 go 1.16
 

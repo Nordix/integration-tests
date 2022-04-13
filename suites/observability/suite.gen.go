@@ -2,10 +2,10 @@
 package observability
 
 import (
+	"github.com/Nordix/integration-tests/suites/spire"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/networkservicemesh/integration-tests/extensions/base"
-	"github.com/networkservicemesh/integration-tests/suites/spire"
 )
 
 type Suite struct {
@@ -25,7 +25,7 @@ func (s *Suite) SetupSuite() {
 	}
 }
 func (s *Suite) TestJaeger_and_prometheus() {
-	r := s.Runner("../deployments-k8s/examples/observability/jaeger-and-prometheus")
+	r := s.Runner("../nsm-deployments-k8s/examples/observability/jaeger-and-prometheus")
 	s.T().Cleanup(func() {
 		r.Run(`rm -r example` + "\n" + `kubectl delete ns ${NAMESPACE}`)
 		r.Run(`WH=$(kubectl get pods -l app=admission-webhook-k8s -n nsm-system --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')` + "\n" + `kubectl delete mutatingwebhookconfiguration ${WH}` + "\n" + `kubectl delete ns nsm-system`)

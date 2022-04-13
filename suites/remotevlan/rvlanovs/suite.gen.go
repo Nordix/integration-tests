@@ -5,16 +5,14 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/networkservicemesh/integration-tests/extensions/base"
-	"github.com/networkservicemesh/integration-tests/suites/remotevlan"
 )
 
 type Suite struct {
 	base.Suite
-	remotevlanSuite remotevlan.Suite
 }
 
 func (s *Suite) SetupSuite() {
-	parents := []interface{}{&s.Suite, &s.remotevlanSuite}
+	parents := []interface{}{&s.Suite}
 	for _, p := range parents {
 		if v, ok := p.(suite.TestingSuite); ok {
 			v.SetT(s.T())
@@ -23,15 +21,17 @@ func (s *Suite) SetupSuite() {
 			v.SetupSuite()
 		}
 	}
-	r := s.Runner("../deployments-k8s/examples/remotevlan/rvlanovs")
+	r := s.Runner("../nsm-deployments-k8s/examples/remotevlan/rvlanovs")
 	s.T().Cleanup(func() {
+		r.Run(`kubectl describe po -n nsm-system -l app=forwarder-ovs`)
+		r.Run(`kubectl logs -n nsm-system -l app=forwarder-ovs` + "\n" + `true`)
 		r.Run(`kubectl delete -k https://github.com/networkservicemesh/deployments-k8s/examples/remotevlan/rvlanovs?ref=ad3bdcbee4f789e50152c0a6653febff0071b508`)
 	})
 	r.Run(`kubectl apply -k https://github.com/networkservicemesh/deployments-k8s/examples/remotevlan/rvlanovs?ref=ad3bdcbee4f789e50152c0a6653febff0071b508`)
 	r.Run(`kubectl -n nsm-system wait --for=condition=ready --timeout=2m pod -l app=forwarder-ovs`)
 }
 func (s *Suite) TestKernel2RVlanBreakout() {
-	r := s.Runner("../deployments-k8s/examples/use-cases/Kernel2RVlanBreakout")
+	r := s.Runner("../nsm-deployments-k8s/examples/use-cases/Kernel2RVlanBreakout")
 	s.T().Cleanup(func() {
 		r.Run(`docker stop rvm-tester` + "\n" + `docker image rm rvm-tester:latest` + "\n" + `true`)
 		r.Run(`kubectl delete ns ${NAMESPACE}`)
@@ -49,7 +49,7 @@ func (s *Suite) TestKernel2RVlanBreakout() {
 	r.Run(`status=0` + "\n" + `    for nsc in "${NSCS[@]}"` + "\n" + `    do` + "\n" + `      docker exec rvm-tester iperf3 -sD -B 172.10.0.254 -1` + "\n" + `      kubectl exec ${NSCS[1]} -c iperf-server -n ${NAMESPACE} -- iperf3 -i0 -t 5 -u -c 172.10.0.254` + "\n" + `      if test $? -ne 0` + "\n" + `      then` + "\n" + `        status=1` + "\n" + `      fi` + "\n" + `    done` + "\n" + `    if test ${status} -eq 1` + "\n" + `    then` + "\n" + `      false` + "\n" + `    fi`)
 }
 func (s *Suite) TestKernel2RVlanInternal() {
-	r := s.Runner("../deployments-k8s/examples/use-cases/Kernel2RVlanInternal")
+	r := s.Runner("../nsm-deployments-k8s/examples/use-cases/Kernel2RVlanInternal")
 	s.T().Cleanup(func() {
 		r.Run(`kubectl delete ns ${NAMESPACE}`)
 	})
@@ -65,7 +65,7 @@ func (s *Suite) TestKernel2RVlanInternal() {
 	r.Run(`IP_ADDR=$(kubectl exec ${NSCS[1]} -c cmd-nsc -n ${NAMESPACE} -- ip -6 a s nsm-1 scope global | grep -oP '(?<=inet6\s)([0-9a-f:]+:+)+[0-9a-f]+')` + "\n" + `    kubectl exec ${NSCS[1]} -c iperf-server -n ${NAMESPACE} -- iperf3 -sD -B ${IP_ADDR} -1` + "\n" + `    kubectl exec ${NSCS[0]} -c iperf-server -n ${NAMESPACE} -- iperf3 -i0 -t 5 -6 -u -c ${IP_ADDR}`)
 }
 func (s *Suite) TestKernel2RVlanMultiNS() {
-	r := s.Runner("../deployments-k8s/examples/use-cases/Kernel2RVlanMultiNS")
+	r := s.Runner("../nsm-deployments-k8s/examples/use-cases/Kernel2RVlanMultiNS")
 	s.T().Cleanup(func() {
 		r.Run(`docker stop rvm-tester && \` + "\n" + `docker image rm rvm-tester:latest` + "\n" + `true`)
 		r.Run(`kubectl delete --namespace=nsm-system -f client.yaml`)
