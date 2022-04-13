@@ -23,20 +23,20 @@ func (s *Suite) SetupSuite() {
 			v.SetupSuite()
 		}
 	}
-	r := s.Runner("../nsm-deployments-k8s/examples/sriov")
+	r := s.Runner("../deployments-k8s/examples/sriov")
 	s.T().Cleanup(func() {
 		r.Run(`WH=$(kubectl get pods -l app=admission-webhook-k8s -n nsm-system --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')` + "\n" + `kubectl delete mutatingwebhookconfiguration ${WH}` + "\n" + `kubectl delete ns nsm-system`)
 	})
 	r.Run(`kubectl create ns nsm-system`)
-	r.Run(`kubectl apply -k ../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/sriov`)
+	r.Run(`kubectl apply -k https://github.com/networkservicemesh/deployments-k8s/examples/sriov?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c`)
 }
 func (s *Suite) TestSriovKernel2Noop() {
-	r := s.Runner("../nsm-deployments-k8s/examples/use-cases/SriovKernel2Noop")
+	r := s.Runner("../deployments-k8s/examples/use-cases/SriovKernel2Noop")
 	s.T().Cleanup(func() {
 		r.Run(`kubectl delete ns ${NAMESPACE}`)
 	})
-	r.Run(`NAMESPACE=($(kubectl create -f ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/use-cases/namespace.yaml)[0])` + "\n" + `NAMESPACE=${NAMESPACE:10}`)
-	r.Run(`cat > kustomization.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: kustomize.config.k8s.io/v1beta1` + "\n" + `kind: Kustomization` + "\n" + `` + "\n" + `namespace: ${NAMESPACE}` + "\n" + `` + "\n" + `bases:` + "\n" + `- ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/apps/nsc-kernel` + "\n" + `- ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/apps/nse-kernel` + "\n" + `- ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/apps/nsc-kernel-ponger` + "\n" + `` + "\n" + `` + "\n" + `patchesStrategicMerge:` + "\n" + `- patch-nsc.yaml` + "\n" + `- patch-nse.yaml` + "\n" + `EOF`)
+	r.Run(`NAMESPACE=($(kubectl create -f https://raw.githubusercontent.com/networkservicemesh/deployments-k8s/0216ecc4d0a9a7dede2c810499fd7d96717fe75c/examples/use-cases/namespace.yaml)[0])` + "\n" + `NAMESPACE=${NAMESPACE:10}`)
+	r.Run(`cat > kustomization.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: kustomize.config.k8s.io/v1beta1` + "\n" + `kind: Kustomization` + "\n" + `` + "\n" + `namespace: ${NAMESPACE}` + "\n" + `` + "\n" + `bases:` + "\n" + `- https://github.com/networkservicemesh/deployments-k8s/apps/nsc-kernel?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c` + "\n" + `- https://github.com/networkservicemesh/deployments-k8s/apps/nse-kernel?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c` + "\n" + `- https://github.com/networkservicemesh/deployments-k8s/apps/nsc-kernel-ponger?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c` + "\n" + `` + "\n" + `` + "\n" + `patchesStrategicMerge:` + "\n" + `- patch-nsc.yaml` + "\n" + `- patch-nse.yaml` + "\n" + `EOF`)
 	r.Run(`cat > patch-nsc.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: apps/v1` + "\n" + `kind: Deployment` + "\n" + `metadata:` + "\n" + `  name: nsc-kernel` + "\n" + `spec:` + "\n" + `  template:` + "\n" + `    spec:` + "\n" + `      containers:` + "\n" + `        - name: nsc` + "\n" + `          env:` + "\n" + `            - name: NSM_NETWORK_SERVICES` + "\n" + `              value: kernel://icmp-responder/nsm-1?sriovToken=worker.domain/10G` + "\n" + `          resources:` + "\n" + `            limits:` + "\n" + `              worker.domain/10G: 1` + "\n" + `EOF`)
 	r.Run(`cat > patch-nse.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: apps/v1` + "\n" + `kind: Deployment` + "\n" + `metadata:` + "\n" + `  name: nse-kernel` + "\n" + `spec:` + "\n" + `  template:` + "\n" + `    spec:` + "\n" + `      containers:` + "\n" + `        - name: nse` + "\n" + `          env:` + "\n" + `            - name: NSM_LABELS` + "\n" + `              value: serviceDomain:worker.domain` + "\n" + `            - name: NSM_CIDR_PREFIX` + "\n" + `              value: 172.16.1.100/31` + "\n" + `          resources:` + "\n" + `            limits:` + "\n" + `              master.domain/10G: 1` + "\n" + `EOF`)
 	r.Run(`kubectl apply -k .`)
@@ -47,14 +47,14 @@ func (s *Suite) TestSriovKernel2Noop() {
 	r.Run(`kubectl -n ${NAMESPACE} exec ${NSC} -- ping -c 4 172.16.1.100`)
 }
 func (s *Suite) TestVfio2Noop() {
-	r := s.Runner("../nsm-deployments-k8s/examples/use-cases/Vfio2Noop")
+	r := s.Runner("../deployments-k8s/examples/use-cases/Vfio2Noop")
 	s.T().Cleanup(func() {
 		r.Run(`NSE=$(kubectl -n ${NAMESPACE} get pods -l app=nse-vfio --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')`)
 		r.Run(`kubectl -n ${NAMESPACE} exec ${NSE} --container ponger -- /bin/bash -c '\` + "\n" + `  sleep 10 && kill $(pgrep "pingpong") 1>/dev/null 2>&1 &               \` + "\n" + `'`)
 		r.Run(`kubectl delete ns ${NAMESPACE}`)
 	})
-	r.Run(`NAMESPACE=($(kubectl create -f ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/use-cases/namespace.yaml)[0])` + "\n" + `NAMESPACE=${NAMESPACE:10}`)
-	r.Run(`cat > kustomization.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: kustomize.config.k8s.io/v1beta1` + "\n" + `kind: Kustomization` + "\n" + `` + "\n" + `namespace: ${NAMESPACE}` + "\n" + `` + "\n" + `bases:` + "\n" + `- ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/apps/nsc-vfio` + "\n" + `- ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/apps/nse-vfio` + "\n" + `EOF`)
+	r.Run(`NAMESPACE=($(kubectl create -f https://raw.githubusercontent.com/networkservicemesh/deployments-k8s/0216ecc4d0a9a7dede2c810499fd7d96717fe75c/examples/use-cases/namespace.yaml)[0])` + "\n" + `NAMESPACE=${NAMESPACE:10}`)
+	r.Run(`cat > kustomization.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: kustomize.config.k8s.io/v1beta1` + "\n" + `kind: Kustomization` + "\n" + `` + "\n" + `namespace: ${NAMESPACE}` + "\n" + `` + "\n" + `bases:` + "\n" + `- https://github.com/networkservicemesh/deployments-k8s/apps/nsc-vfio?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c` + "\n" + `- https://github.com/networkservicemesh/deployments-k8s/apps/nse-vfio?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c` + "\n" + `EOF`)
 	r.Run(`kubectl apply -k .`)
 	r.Run(`kubectl -n ${NAMESPACE} wait --for=condition=ready --timeout=1m pod -l app=nsc-vfio`)
 	r.Run(`kubectl -n ${NAMESPACE} wait --for=condition=ready --timeout=1m pod -l app=nse-vfio`)

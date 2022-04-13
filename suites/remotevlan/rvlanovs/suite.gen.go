@@ -21,21 +21,21 @@ func (s *Suite) SetupSuite() {
 			v.SetupSuite()
 		}
 	}
-	r := s.Runner("../nsm-deployments-k8s/examples/remotevlan/rvlanovs")
+	r := s.Runner("../deployments-k8s/examples/remotevlan/rvlanovs")
 	s.T().Cleanup(func() {
 		r.Run(`kubectl describe po -n nsm-system -l app=forwarder-ovs`)
-		r.Run(`kubectl logs -n nsm-system -l app=forwarder-ovs` + "\n" + `true`)
-		r.Run(`kubectl delete -k ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/remotevlan/rvlanovs`)
+		r.Run(`kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{": "}{.status.allocatable}{"\n"}{end}' --selector='!node-role.kubernetes.io/master'`)
+		r.Run(`kubectl delete -k https://github.com/networkservicemesh/deployments-k8s/examples/remotevlan/rvlanovs?ref=d5b46f176febb92f750b7421b5dcbc508b13e648`)
 	})
-	r.Run(`kubectl apply -k ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/remotevlan/rvlanovs`)
+	r.Run(`kubectl apply -k https://github.com/networkservicemesh/deployments-k8s/examples/remotevlan/rvlanovs?ref=d5b46f176febb92f750b7421b5dcbc508b13e648`)
 	r.Run(`kubectl -n nsm-system wait --for=condition=ready --timeout=2m pod -l app=forwarder-ovs`)
 }
 func (s *Suite) TestKernel2RVlanInternal() {
-	r := s.Runner("../nsm-deployments-k8s/examples/use-cases/Kernel2RVlanInternal")
+	r := s.Runner("../deployments-k8s/examples/use-cases/Kernel2RVlanInternal")
 	s.T().Cleanup(func() {
 		r.Run(`kubectl delete ns ${NAMESPACE}`)
 	})
-	r.Run(`NAMESPACE=($(kubectl create -f ../../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/use-cases/namespace.yaml)[0])` + "\n" + `NAMESPACE=${NAMESPACE:10}`)
+	r.Run(`NAMESPACE=($(kubectl create -f https://raw.githubusercontent.com/networkservicemesh/deployments-k8s/0216ecc4d0a9a7dede2c810499fd7d96717fe75c/examples/use-cases/namespace.yaml)[0])` + "\n" + `NAMESPACE=${NAMESPACE:10}`)
 	r.Run(`cat > first-iperf-s.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: apps/v1` + "\n" + `kind: Deployment` + "\n" + `metadata:` + "\n" + `  name: iperf1-s` + "\n" + `  labels:` + "\n" + `    app: iperf1-s` + "\n" + `spec:` + "\n" + `  replicas: 2` + "\n" + `  selector:` + "\n" + `    matchLabels:` + "\n" + `      app: iperf1-s` + "\n" + `  template:` + "\n" + `    metadata:` + "\n" + `      labels:` + "\n" + `        app: iperf1-s` + "\n" + `      annotations:` + "\n" + `        networkservicemesh.io: kernel://finance-bridge/nsm-1` + "\n" + `    spec:` + "\n" + `      affinity:` + "\n" + `        podAntiAffinity:` + "\n" + `          requiredDuringSchedulingIgnoredDuringExecution:` + "\n" + `          - labelSelector:` + "\n" + `              matchExpressions:` + "\n" + `              - key: app` + "\n" + `                operator: In` + "\n" + `                values:` + "\n" + `                - iperf1-s` + "\n" + `            topologyKey: "kubernetes.io/hostname"` + "\n" + `      containers:` + "\n" + `      - name: iperf-server` + "\n" + `        image: networkstatic/iperf3:latest` + "\n" + `        imagePullPolicy: IfNotPresent` + "\n" + `        command: ["tail", "-f", "/dev/null"]` + "\n" + `EOF`)
 	r.Run(`cat > kustomization.yaml <<EOF` + "\n" + `---` + "\n" + `apiVersion: kustomize.config.k8s.io/v1beta1` + "\n" + `kind: Kustomization` + "\n" + `` + "\n" + `namespace: ${NAMESPACE}` + "\n" + `` + "\n" + `resources:` + "\n" + `- first-iperf-s.yaml` + "\n" + `` + "\n" + `EOF`)
 	r.Run(`kubectl apply -k .`)

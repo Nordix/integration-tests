@@ -21,11 +21,11 @@ func (s *Suite) SetupSuite() {
 			v.SetupSuite()
 		}
 	}
-	r := s.Runner("../nsm-deployments-k8s/examples/spire")
+	r := s.Runner("../deployments-k8s/examples/spire")
 	s.T().Cleanup(func() {
 		r.Run(`kubectl delete crd spiffeids.spiffeid.spiffe.io` + "\n" + `kubectl delete ns spire`)
 	})
-	r.Run(`kubectl apply -k ../../../../../../../../../../../home/ljkiraly/work/code/src/github.com/Nordix/nsm-deployments-k8s/examples/spire`)
+	r.Run(`kubectl apply -k https://github.com/networkservicemesh/deployments-k8s/examples/spire?ref=0216ecc4d0a9a7dede2c810499fd7d96717fe75c`)
 	r.Run(`kubectl wait -n spire --timeout=2m --for=condition=ready pod -l app=spire-agent`)
 	r.Run(`kubectl wait -n spire --timeout=1m --for=condition=ready pod -l app=spire-server`)
 }
