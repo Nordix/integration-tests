@@ -2,10 +2,10 @@
 package multiforwarder
 
 import (
-	"github.com/Nordix/integration-tests/suites/spire"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/networkservicemesh/integration-tests/extensions/base"
+	"github.com/Nordix/integration-tests/extensions/base"
+	"github.com/Nordix/integration-tests/suites/spire"
 )
 
 type Suite struct {

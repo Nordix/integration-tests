@@ -2,10 +2,10 @@
 package features
 
 import (
-	"github.com/Nordix/integration-tests/suites/basic"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/networkservicemesh/integration-tests/extensions/base"
+	"github.com/Nordix/integration-tests/extensions/base"
+	"github.com/Nordix/integration-tests/suites/basic"
 )
 
 type Suite struct {

@@ -2,12 +2,12 @@
 package interdomain
 
 import (
+	"github.com/stretchr/testify/suite"
+
+	"github.com/Nordix/integration-tests/extensions/base"
 	"github.com/Nordix/integration-tests/suites/interdomain/dns"
 	"github.com/Nordix/integration-tests/suites/interdomain/loadbalancer"
 	"github.com/Nordix/integration-tests/suites/interdomain/spire"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/networkservicemesh/integration-tests/extensions/base"
 )
 
 type Suite struct {

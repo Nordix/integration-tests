@@ -2,12 +2,12 @@
 package remotevlan
 
 import (
+	"github.com/stretchr/testify/suite"
+
+	"github.com/Nordix/integration-tests/extensions/base"
 	"github.com/Nordix/integration-tests/suites/remotevlan/rvlanovs"
 	"github.com/Nordix/integration-tests/suites/remotevlan/rvlanvpp"
 	"github.com/Nordix/integration-tests/suites/spire"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/networkservicemesh/integration-tests/extensions/base"
 )
 
 type Suite struct {
