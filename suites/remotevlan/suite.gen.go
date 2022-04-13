@@ -6,7 +6,6 @@ import (
 
 	"github.com/Nordix/integration-tests/extensions/base"
 	"github.com/Nordix/integration-tests/suites/remotevlan/rvlanovs"
-	"github.com/Nordix/integration-tests/suites/remotevlan/rvlanvpp"
 	"github.com/Nordix/integration-tests/suites/spire"
 )
 
@@ -14,7 +13,6 @@ type Suite struct {
 	base.Suite
 	spireSuite    spire.Suite
 	rvlanovsSuite rvlanovs.Suite
-	rvlanvppSuite rvlanvpp.Suite
 }
 
 func (s *Suite) SetupSuite() {
@@ -66,16 +64,7 @@ func (s *Suite) RunIncludedSuites() {
 	s.Run("Rvlanovs", func() {
 		s.rvlanovsSuite.SetT(s.T())
 		s.rvlanovsSuite.SetupSuite()
-		runTest(&s.rvlanovsSuite, "Rvlanovs", "TestKernel2RVlanBreakout", s.rvlanovsSuite.TestKernel2RVlanBreakout)
 		runTest(&s.rvlanovsSuite, "Rvlanovs", "TestKernel2RVlanInternal", s.rvlanovsSuite.TestKernel2RVlanInternal)
-		runTest(&s.rvlanovsSuite, "Rvlanovs", "TestKernel2RVlanMultiNS", s.rvlanovsSuite.TestKernel2RVlanMultiNS)
-	})
-	s.Run("Rvlanvpp", func() {
-		s.rvlanvppSuite.SetT(s.T())
-		s.rvlanvppSuite.SetupSuite()
-		runTest(&s.rvlanvppSuite, "Rvlanvpp", "TestKernel2RVlanBreakout", s.rvlanvppSuite.TestKernel2RVlanBreakout)
-		runTest(&s.rvlanvppSuite, "Rvlanvpp", "TestKernel2RVlanInternal", s.rvlanvppSuite.TestKernel2RVlanInternal)
-		runTest(&s.rvlanvppSuite, "Rvlanvpp", "TestKernel2RVlanMultiNS", s.rvlanvppSuite.TestKernel2RVlanMultiNS)
 	})
 }
 func (s *Suite) Test() {}
